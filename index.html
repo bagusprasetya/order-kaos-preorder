@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Order Kaos Pre-Order</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <h2>🛒 Form Order Kaos Pre-Order</h2>
+  <form id="orderForm">
+    <label>Nama Lengkap: <input type="text" name="nama" required></label><br><br>
+    <label>Email: <input type="email" name="email" required></label><br><br>
+    <label>No. HP: <input type="text" name="telepon" required></label><br><br>
+    <label>Alamat Lengkap: <br><textarea name="alamat" rows="3" required></textarea></label><br><br>
+
+    <label>Provinsi: 
+      <select id="provinsi" required></select>
+    </label><br><br>
+    
+    <label>Kota/Kabupaten: 
+      <select id="kota" required></select>
+    </label><br><br>
+    
+    <label>Jumlah Kaos: <input type="number" id="jumlah" value="1" min="1" required></label><br><br>
+    
+    <label>Ukuran Kaos:
+      <select name="ukuran" required>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+        <option value="XXL">XXL</option>
+      </select>
+    </label><br><br>
+
+    <p>Harga Kaos: <strong>Rp <span id="hargaKaos">149000</span></strong></p>
+    <p>Ongkir (ID Express): <strong>Rp <span id="ongkir">-</span></strong></p>
+    <p><strong>Total Harga: Rp <span id="totalHarga">-</span></strong></p>
+
+    <button type="submit">Kirim Pesanan</button>
+  </form>
+
+  <script>
+    const hargaKaos = 149000;
+    const apiKey = "51Xtw9tl2a373fe8d46e1b1b51Xu6HKK"; // API Key RajaOngkir Anda
+    const origin = "172"; // ID kota Sidoarjo di RajaOngkir
+
+    $(document).ready(function() {
+      // Ambil data provinsi
+      $.ajax({
+        url: "https://api.rajaongkir.com/starter/province",
+        type: "GET",
+        headers: { key: apiKey },
+        success: function(result) {
+          let provinsi = result.rajaongkir.results;
+          $.each(provinsi, function(i, data) {
+            $('#provinsi').append(`<option value="${data.province_id}">${data.province}</option>`);
+          });
+        }
+      });
+
+      // Ambil kota ketika provinsi dipilih
+      $('#provinsi').on('change', function() {
+        let provID = $(this).val();
+        $('#kota').html('<option>Loading...</option>');
+        $.ajax({
+          url: `https://api.rajaongkir.com/starter/city?province=${provID}`,
+          type: "GET",
+          headers: { key: apiKey },
+          success: function(result) {
+            $('#kota').html('');
+            let kota = result.rajaongkir.results;
+            $.each(kota, function(i, data) {
+              $('#kota').append(`<option value="${data.city_id}">${data.type} ${data.city_name}</option>`);
+            });
+          }
+        });
+      });
+
+      // Hitung ongkir ketika jumlah atau kota berubah
+      $('#jumlah, #kota').on('change', function() {
+        let destination = $('#kota').val();
+        let jumlah = parseInt($('#jumlah').val());
+        let berat = jumlah * 500; // berat per kaos = 500 gram
+
+        if (destination) {
+          $.ajax({
+            url: "https://api.rajaongkir.com/starter/cost",
+            type: "POST",
+            data: {
+              origin: origin,
+              destination: destination,
+              weight: berat,
+              courier: "ide" // Kode ID Express di RajaOngkir
+            },
+            headers: { key: apiKey },
+            success: function(result) {
+              let cost = result.rajaongkir.results[0].costs[0].cost[0].value;
+              $('#ongkir').text(cost.toLocaleString());
+              let total = (hargaKaos * jumlah) + cost;
+              $('#totalHarga').text(total.toLocaleString());
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
