@@ -6,7 +6,7 @@
     <title>Order Kaos Pre-Order</title>
     <script>
         // API key RajaOngkir
-        const apiKey = 'fMUodEMG2a373fe8d46e1b1bTwmZd9xT';
+        const apiKey = '51Xtw9tl2a373fe8d46e1b1b51Xu6HKK';
         const apiUrl = 'https://api.rajaongkir.com/starter/province'; // Endpoint untuk mendapatkan provinsi
 
         // Fungsi untuk memanggil API dan menampilkan provinsi
@@ -19,9 +19,14 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log("Data yang diterima:", data);  // Debugging log untuk melihat respons
+
                 if (data.rajaongkir.status.code === 200) {
                     const provinces = data.rajaongkir.results;
                     const provinceSelect = document.getElementById('province'); // Dropdown provinsi
+
+                    // Membersihkan dropdown sebelum mengisinya
+                    provinceSelect.innerHTML = '<option value="">Pilih Provinsi</option>';
 
                     // Menambahkan provinsi ke dropdown
                     provinces.forEach(province => {
